@@ -1,0 +1,37 @@
+@baseURL = http://localhost:3000
+
+
+### Get All Users
+GET {{baseURL}}/
+
+###
+GET {{baseURL}}/api/users
+
+###
+
+GET {{baseURL}}/api/users/6a21b3d0a12e13c4adcb1f11
+
+### Create a New User
+POST http://localhost:3000/api/users
+Content-Type: application/json
+
+{
+  "name": "eded fbfbh",
+  "email": "ddfih@gtm.com",
+  "password": "12322",
+  "age": 16
+}
+
+
+### Update an Existing User
+PUT http://localhost:3000/api/users/PASTE_BRUCE_WAYNE_ID_HERE
+Content-Type: application/json
+
+{
+  "name": "The Batman",
+  "age": 36
+}
+
+### Delete a User
+
+DELETE {{baseURL}}/api/users/6a21c9f0e89585768d0e2720
