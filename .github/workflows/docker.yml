@@ -3,12 +3,10 @@ name: Build and Push Docker Image
 on:
   push:
     branches: [main, master]
-  pull_request:
-    branches: [main, master]
 
 jobs:
   build-and-push:
-    runs-on: alpine-latest
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -25,5 +23,3 @@ jobs:
           context: .
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/user-management:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
