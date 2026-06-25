@@ -1,53 +1,63 @@
 const API_URL = "http://localhost:3000/api/users";
 
+// אלמנטים מה-HTML החדש
 const usersGrid = document.getElementById("usersGrid");
 const addUserForm = document.getElementById("addUserForm");
 const deleteUserForm = document.getElementById("deleteUserForm");
+const updateTaskForm = document.getElementById("updateTaskForm");
+const messageBox = document.getElementById("messageBox");
 
-// פונקציית מחיקה (מוציאים אותה החוצה!)
+// פונקציה להצגת הודעות למשתמש
+function showMessage(msg, isError = false) {
+  messageBox.textContent = msg;
+  messageBox.style.backgroundColor = isError ? "#ffcccc" : "#ccffcc";
+  setTimeout(() => {
+    messageBox.textContent = "";
+  }, 3000);
+}
+
+// פונקציית מחיקה
 async function deleteUser(userId) {
   if (!confirm("Are you sure you want to delete this user?")) return;
-
   try {
     const response = await fetch(`${API_URL}/${userId}`, { method: "DELETE" });
     if (response.ok) {
-      loadUsers(); // רענון הרשימה לאחר המחיקה
+      loadUsers();
+      showMessage("User deleted successfully!");
     } else {
-      console.error("Failed to delete user");
+      showMessage("Failed to delete user", true);
     }
   } catch (error) {
-    console.error("Error deleting user:", error);
+    showMessage("Error deleting task", true);
   }
 }
 
-async function loadUsers() {
+// טעינת משימות
+async function loadTasks() {
   try {
     const response = await fetch(API_URL);
-    if (!response.ok) throw new Error("Network response was not ok");
-    const users = await response.json();
-    renderUsers(users);
+    const tasks = await response.json();
+    renderTasks(tasks);
   } catch (error) {
-    console.error("Error loading users:", error);
-    usersGrid.innerHTML = `<p style="color:red">Error connecting to server.</p>`;
+    tasksGrid.innerHTML = `<p style="color:red">Error connecting to server.</p>`;
   }
 }
 
-function renderUsers(users) {
-  if (users.length === 0) {
-    usersGrid.innerHTML = `<p>No users yet, please add one.</p>`;
+// רינדור משימות ל-Grid
+function renderTasks(tasks) {
+  if (tasks.length === 0) {
+    tasksGrid.innerHTML = `<p>No tasks yet, add one below!</p>`;
     return;
   }
-
-  // שים לב לשימוש בגרשיים סביב ה-ID בקריאה לפונקציה
-  usersGrid.innerHTML = users
+  tasksGrid.innerHTML = tasks
     .map(
-      (user) => `
+      (task) => `
     <div class="card">
-      <button onclick="deleteUser('${user._id}')">Delete</button>
-      <h3>${user.name}</h3>
-      <div>Email: ${user.email}</div>
-      <div>Age: ${user.age}</div>
-      <div>ID: ${user._id}</div>
+      <h3>${task.title}</h3>
+      <p>Priority: ${task.priority}</p>
+      <p>Status: <strong>${task.status}</strong></p>
+      <small>ID: ${task._id}</small>
+      <button onclick="deleteTask('${task._id}')">Delete</button>
     </div>
   `,
     )
@@ -55,32 +65,52 @@ function renderUsers(users) {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  loadUsers();
+  loadTasks();
 
-  addUserForm.addEventListener("submit", async (e) => {
+  // הוספת משימה
+  addTaskForm.addEventListener("submit", async (e) => {
     e.preventDefault();
-    const newUser = {
-      name: document.getElementById("name").value,
-      email: document.getElementById("email").value,
-      password: document.getElementById("password").value,
-      age: parseInt(document.getElementById("age").value),
+    const newTask = {
+      title: document.getElementById("taskTitle").value,
+      priority: document.getElementById("taskPriority").value,
+      status: "Pending",
     };
 
     const response = await fetch(API_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(newUser),
+      body: JSON.stringify(newTask),
     });
 
     if (response.ok) {
-      addUserForm.reset();
-      loadUsers();
+      addTaskForm.reset();
+      loadTasks();
+      showMessage("Task added!");
     }
   });
 
-  deleteUserForm.addEventListener("submit", async (e) => {
+  // מחיקה מטופס
+  deleteTaskForm.addEventListener("submit", async (e) => {
     e.preventDefault();
-    const userId = document.getElementById("userId").value;
-    deleteUser(userId); // שימוש בפונקציה החדשה
+    const taskId = document.getElementById("deleteTaskId").value;
+    deleteTask(taskId);
+  });
+
+  // עדכון סטטוס משימה
+  updateTaskForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const taskId = document.getElementById("updateTaskId").value;
+    const status = document.getElementById("updateTaskStatus").value;
+
+    const response = await fetch(`${API_URL}/${taskId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status }),
+    });
+
+    if (response.ok) {
+      loadTasks();
+      showMessage("Task updated!");
+    }
   });
 });
